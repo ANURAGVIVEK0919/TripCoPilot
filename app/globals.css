@@ -1,0 +1,456 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  /* Color Mappings */
+  --color-background: var(--background);
+  --color-background-subtle: var(--background-subtle);
+  --color-background-muted: var(--background-muted);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-hover: var(--primary-hover);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  
+  /* Semantic Colors */
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-success-light: var(--success-light);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-warning-light: var(--warning-light);
+  --color-error: var(--error);
+  --color-error-foreground: var(--error-foreground);
+  --color-error-light: var(--error-light);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-info-light: var(--info-light);
+  
+  /* Chart Colors */
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  
+  /* Sidebar Colors */
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  
+  /* Font Mappings */
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  
+  /* Radius Mappings */
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+  --radius-2xl: var(--radius-2xl);
+  --radius-full: var(--radius-full);
+  
+  /* Shadow Mappings */
+  --shadow-sm: var(--shadow-sm);
+  --shadow-default: var(--shadow-default);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+  --shadow-xl: var(--shadow-xl);
+  --shadow-2xl: var(--shadow-2xl);
+}
+
+:root {
+  /* ========================================
+     BORDER RADIUS SYSTEM
+     ======================================== */
+  --radius: 0.625rem;
+  --radius-sm: 0.375rem;    /* 6px - small elements, badges */
+  --radius-md: 0.5rem;      /* 8px - buttons, inputs */
+  --radius-lg: 0.75rem;     /* 12px - cards */
+  --radius-xl: 1rem;        /* 16px - large cards, modals */
+  --radius-2xl: 1.5rem;     /* 24px - hero sections */
+  --radius-full: 9999px;    /* full rounded - pills, avatars */
+
+  /* ========================================
+     SHADOW SYSTEM
+     ======================================== */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-default: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+
+  /* ========================================
+     SPACING SYSTEM
+     ======================================== */
+  --spacing-page-x-mobile: 1rem;      /* 16px - mobile horizontal padding */
+  --spacing-page-x-tablet: 2rem;      /* 32px - tablet horizontal padding */
+  --spacing-page-x-desktop: 3rem;     /* 48px - desktop horizontal padding */
+  --spacing-page-x-wide: 6rem;        /* 96px - wide desktop padding */
+  
+  --spacing-page-y-mobile: 1.5rem;    /* 24px - mobile vertical padding */
+  --spacing-page-y-tablet: 2rem;      /* 32px - tablet vertical padding */
+  --spacing-page-y-desktop: 2.5rem;   /* 40px - desktop vertical padding */
+  
+  --spacing-section: 2rem;            /* 32px - between major sections */
+  --spacing-section-lg: 3rem;         /* 48px - between hero sections */
+  --spacing-card: 1rem;               /* 16px - card internal padding */
+  --spacing-card-lg: 1.5rem;          /* 24px - large card padding */
+
+  /* ========================================
+     TYPOGRAPHY SYSTEM
+     ======================================== */
+  /* Font Sizes */
+  --font-size-h1: 2.25rem;            /* 36px */
+  --font-size-h1-mobile: 1.875rem;    /* 30px */
+  --font-size-h2: 1.875rem;           /* 30px */
+  --font-size-h2-mobile: 1.5rem;      /* 24px */
+  --font-size-h3: 1.5rem;             /* 24px */
+  --font-size-h3-mobile: 1.25rem;     /* 20px */
+  --font-size-body: 1rem;             /* 16px */
+  --font-size-small: 0.875rem;        /* 14px */
+  --font-size-tiny: 0.75rem;          /* 12px */
+
+  /* Line Heights */
+  --line-height-tight: 1.25;          /* For headings */
+  --line-height-normal: 1.5;          /* For UI text */
+  --line-height-relaxed: 1.75;        /* For body text/content */
+  --line-height-loose: 2;             /* For spaced content */
+
+  /* Font Weights */
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* ========================================
+     COLOR SYSTEM
+     ======================================== */
+  /* Base Colors */
+  --background: oklch(1 0 0);                        /* Pure white */
+  --background-subtle: oklch(0.99 0 0);              /* Off-white */
+  --background-muted: oklch(0.97 0 0);               /* Light gray background */
+  --foreground: oklch(0.129 0.042 264.695);          /* Near black */
+  
+  /* Primary Brand Colors */
+  --primary: oklch(0.208 0.042 265.755);             /* Blue */
+  --primary-foreground: oklch(0.984 0.003 247.858);  /* White text on primary */
+  --primary-hover: oklch(0.18 0.042 265.755);        /* Darker blue on hover */
+  
+  /* Semantic Colors */
+  --success: oklch(0.6 0.15 145);                    /* Green */
+  --success-foreground: oklch(1 0 0);                /* White text */
+  --success-light: oklch(0.95 0.05 145);             /* Light green background */
+  
+  --warning: oklch(0.75 0.15 85);                    /* Yellow/Orange */
+  --warning-foreground: oklch(0.2 0 0);              /* Dark text */
+  --warning-light: oklch(0.97 0.05 85);              /* Light yellow background */
+  
+  --error: oklch(0.577 0.245 27.325);                /* Red */
+  --error-foreground: oklch(1 0 0);                  /* White text */
+  --error-light: oklch(0.97 0.05 27);                /* Light red background */
+  
+  --info: oklch(0.6 0.15 250);                       /* Blue */
+  --info-foreground: oklch(1 0 0);                   /* White text */
+  --info-light: oklch(0.97 0.05 250);                /* Light blue background */
+  
+  /* UI Colors */
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.129 0.042 264.695);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.129 0.042 264.695);
+  --secondary: oklch(0.968 0.007 247.896);
+  --secondary-foreground: oklch(0.208 0.042 265.755);
+  --muted: oklch(0.968 0.007 247.896);
+  --muted-foreground: oklch(0.554 0.046 257.417);
+  --accent: oklch(0.968 0.007 247.896);
+  --accent-foreground: oklch(0.208 0.042 265.755);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.929 0.013 255.508);
+  --input: oklch(0.929 0.013 255.508);
+  --ring: oklch(0.704 0.04 256.788);
+  
+  /* Chart Colors */
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  
+  /* Sidebar Colors */
+  --sidebar: oklch(0.984 0.003 247.858);
+  --sidebar-foreground: oklch(0.129 0.042 264.695);
+  --sidebar-primary: oklch(0.208 0.042 265.755);
+  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
+  --sidebar-accent: oklch(0.968 0.007 247.896);
+  --sidebar-accent-foreground: oklch(0.208 0.042 265.755);
+  --sidebar-border: oklch(0.929 0.013 255.508);
+  --sidebar-ring: oklch(0.704 0.04 256.788);
+}
+
+.dark {
+  /* Dark Mode Colors */
+  --background: oklch(0.129 0.042 264.695);
+  --background-subtle: oklch(0.15 0.042 264.695);
+  --background-muted: oklch(0.18 0.042 264.695);
+  --foreground: oklch(0.984 0.003 247.858);
+  
+  --card: oklch(0.208 0.042 265.755);
+  --card-foreground: oklch(0.984 0.003 247.858);
+  --popover: oklch(0.208 0.042 265.755);
+  --popover-foreground: oklch(0.984 0.003 247.858);
+  
+  --primary: oklch(0.929 0.013 255.508);
+  --primary-foreground: oklch(0.208 0.042 265.755);
+  --primary-hover: oklch(0.85 0.013 255.508);
+  
+  --secondary: oklch(0.279 0.041 260.031);
+  --secondary-foreground: oklch(0.984 0.003 247.858);
+  --muted: oklch(0.279 0.041 260.031);
+  --muted-foreground: oklch(0.704 0.04 256.788);
+  --accent: oklch(0.279 0.041 260.031);
+  --accent-foreground: oklch(0.984 0.003 247.858);
+  
+  --destructive: oklch(0.704 0.191 22.216);
+  --error: oklch(0.704 0.191 22.216);
+  --error-foreground: oklch(1 0 0);
+  
+  --success: oklch(0.65 0.15 145);
+  --success-foreground: oklch(1 0 0);
+  
+  --warning: oklch(0.8 0.15 85);
+  --warning-foreground: oklch(0.2 0 0);
+  
+  --info: oklch(0.65 0.15 250);
+  --info-foreground: oklch(1 0 0);
+  
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.551 0.027 264.364);
+  
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  
+  --sidebar: oklch(0.208 0.042 265.755);
+  --sidebar-foreground: oklch(0.984 0.003 247.858);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
+  --sidebar-accent: oklch(0.279 0.041 260.031);
+  --sidebar-accent-foreground: oklch(0.984 0.003 247.858);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.551 0.027 264.364);
+}
+
+@layer base {
+  /* ========================================
+     BASE RESET & DEFAULTS
+     ======================================== */
+  * {
+    @apply border-border outline-ring/50;
+  }
+  
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* ========================================
+     TYPOGRAPHY HIERARCHY
+     ======================================== */
+  h1, .h1 {
+    font-size: var(--font-size-h1-mobile);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-tight);
+    letter-spacing: -0.02em;
+  }
+  
+  @media (min-width: 768px) {
+    h1, .h1 {
+      font-size: var(--font-size-h1);
+    }
+  }
+
+  h2, .h2 {
+    font-size: var(--font-size-h2-mobile);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-tight);
+    letter-spacing: -0.01em;
+  }
+  
+  @media (min-width: 768px) {
+    h2, .h2 {
+      font-size: var(--font-size-h2);
+    }
+  }
+
+  h3, .h3 {
+    font-size: var(--font-size-h3-mobile);
+    font-weight: var(--font-weight-semibold);
+    line-height: var(--line-height-tight);
+  }
+  
+  @media (min-width: 768px) {
+    h3, .h3 {
+      font-size: var(--font-size-h3);
+    }
+  }
+
+  p, .body {
+    font-size: var(--font-size-body);
+    line-height: var(--line-height-relaxed);
+  }
+
+  .text-small, small {
+    font-size: var(--font-size-small);
+    line-height: var(--line-height-normal);
+  }
+
+  .text-tiny {
+    font-size: var(--font-size-tiny);
+    line-height: var(--line-height-normal);
+  }
+
+  /* ========================================
+     UTILITY CLASSES
+     ======================================== */
+  .page-container {
+    @apply px-4 py-6;
+  }
+  
+  @media (min-width: 768px) {
+    .page-container {
+      @apply px-8 py-8;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .page-container {
+      @apply px-12 py-10;
+    }
+  }
+  
+  @media (min-width: 1280px) {
+    .page-container {
+      @apply px-24 py-10;
+    }
+  }
+
+  .section-spacing {
+    @apply space-y-8;
+  }
+
+  .card-padding {
+    @apply p-4;
+  }
+  
+  @media (min-width: 768px) {
+    .card-padding {
+      @apply p-6;
+    }
+  }
+
+  /* ========================================
+     SEMANTIC COLOR CLASSES
+     ======================================== */
+  .bg-success {
+    background-color: var(--success);
+    color: var(--success-foreground);
+  }
+
+  .bg-success-light {
+    background-color: var(--success-light);
+    color: var(--success);
+  }
+
+  .bg-warning {
+    background-color: var(--warning);
+    color: var(--warning-foreground);
+  }
+
+  .bg-warning-light {
+    background-color: var(--warning-light);
+    color: var(--warning);
+  }
+
+  .bg-error {
+    background-color: var(--error);
+    color: var(--error-foreground);
+  }
+
+  .bg-error-light {
+    background-color: var(--error-light);
+    color: var(--error);
+  }
+
+  .bg-info {
+    background-color: var(--info);
+    color: var(--info-foreground);
+  }
+
+  .bg-info-light {
+    background-color: var(--info-light);
+    color: var(--info);
+  }
+
+  .text-success {
+    color: var(--success);
+  }
+
+  .text-warning {
+    color: var(--warning);
+  }
+
+  .text-error {
+    color: var(--error);
+  }
+
+  .text-info {
+    color: var(--info);
+  }
+
+  /* ========================================
+     FOCUS & INTERACTION STATES
+     ======================================== */
+  .focus-ring {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+  }
+
+  *:focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+  }
+
+  /* ========================================
+     SMOOTH TRANSITIONS
+     ======================================== */
+  * {
+    transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 150ms;
+  }
+}
