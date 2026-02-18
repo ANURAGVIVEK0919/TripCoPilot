@@ -30,7 +30,7 @@
     "lucide-react": "^0.532.0",
     "mapbox-gl": "^3.15.0",
     "motion": "^12.23.24",
-    "next": "^15.5.5",
+    "next": "^16.1.6",
     "olamaps-web-sdk": "^1.1.4",
     "open": "^10.2.0",
     "openai": "^5.11.0",
