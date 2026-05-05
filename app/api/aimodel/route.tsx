@@ -179,12 +179,12 @@ export async function POST(req: NextRequest) {
                           user?.publicMetadata?.subscription === 'monthly';
   
   console.log("hasPremiumAccess", hasPremiumAccess)
-  const decision = await aj.protect(req, { userId: user?.primaryEmailAddress?.emailAddress ?? '', requested: isFinal ? 5 : 0 }); // Deduct 5 tokens from the bucket
+  const decision = await aj.protect(req, { userId: user?.primaryEmailAddress?.emailAddress ?? '', requested: isFinal ? 1 : 0 }); // Deduct 1 token from the bucket
 
   console.log("Arcjet decision:", decision);
 
   //@ts-ignore
-  if (decision?.reason?.remaining == 0 && !hasPremiumAccess) {
+  if (decision.isDenied() && !hasPremiumAccess) {
     console.log("❌ Credit limit reached");
     return NextResponse.json({
       resp: 'No Free Credit Remaining',

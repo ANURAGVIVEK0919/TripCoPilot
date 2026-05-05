@@ -43,6 +43,13 @@ function ViewTrip() {
         { tripId: tripid as string }
     );
 
+    // Get trip budget for currency
+    const tripBudget = useQuery(
+        api.expenses.getTripBudget,
+        { tripId: tripid as string }
+    );
+    const activeCurrency = tripBudget?.currency || 'USD';
+
     // Delete mutation
     const deleteTrip = useMutation(api.tripDetail.DeleteTrip);
 
@@ -305,7 +312,7 @@ function ViewTrip() {
                             <div className='overflow-y-auto flex-1 p-6'>
                                 <ExpenseTracker 
                                     tripId={tripid as string} 
-                                    tripCurrency={tripDetailInfo?.budget === 'High' ? 'USD' : 'USD'}
+                                    tripCurrency={activeCurrency}
                                 />
                             </div>
                         </>
@@ -325,7 +332,7 @@ function ViewTrip() {
                             <div className='overflow-y-auto flex-1 p-6'>
                                 <BudgetAnalytics 
                                     tripId={tripid as string}
-                                    currency={tripDetailInfo?.budget === 'High' ? 'USD' : 'USD'}
+                                    currency={activeCurrency}
                                 />
                             </div>
                         </>
@@ -345,7 +352,7 @@ function ViewTrip() {
                             <div className='overflow-y-auto flex-1 p-6'>
                                 <SettlementTracker 
                                     tripId={tripid as string}
-                                    currency={tripDetailInfo?.budget === 'High' ? 'USD' : 'USD'}
+                                    currency={activeCurrency}
                                 />
                             </div>
                         </>
