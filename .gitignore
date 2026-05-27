@@ -42,3 +42,10 @@ next-env.d.ts
 
 # clerk configuration (can include secrets)
 /.clerk/
+
+# local documentation guides (except README)
+PROJECT_FIXES_SUMMARY.md
+QUICK_DEPLOY.md
+QUICK_START_ITINERARY_EDITOR.md
+VERCEL_DEPLOYMENT_GUIDE.md
+
