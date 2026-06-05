@@ -14,6 +14,14 @@ import { useUserDetail } from '../provider'
 import { Id } from '@/convex/_generated/dataModel'
 import { useUploadThing } from '@/utils/uploadthing'
 import LocalInsiderTips from './_components/LocalInsiderTips'
+import FeaturedTravelers from './_components/FeaturedTravelers'
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog'
 
 function CommunityPage() {
     const { user } = useUser()
@@ -97,7 +105,10 @@ function CommunityPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-        if (!userDetail?._id) return
+        if (!userDetail?._id) {
+            alert('Your user details are still loading from the database. Please wait a moment and try again.')
+            return
+        }
 
         setIsUploading(true)
         let imageUrls: string[] = []
@@ -503,16 +514,36 @@ function CommunityPage() {
     }
 
     return (
-        <div className='min-h-screen bg-gradient-to-br from-orange-50 via-white to-pink-50 py-8 px-4'>
+        <div className='min-h-screen bg-gradient-to-br from-orange-50/50 via-white/80 to-pink-50/50 backdrop-blur-md py-8 px-4'>
             <div className='max-w-6xl mx-auto'>
                 {/* Header */}
                 <div className='mb-8'>
-                    <h1 className='text-4xl font-bold text-gray-900 mb-2'>
-                        Travel Community
-                    </h1>
-                    <p className='text-gray-600 mb-6'>
-                        Share your travel experiences and get inspired by others
-                    </p>
+                    <div className='flex justify-between items-start flex-wrap gap-4 mb-6'>
+                        <div>
+                            <h1 className='text-4xl font-bold text-gray-900 mb-2'>
+                                Travel Community
+                            </h1>
+                            <p className='text-gray-600'>
+                                Share your travel experiences and get inspired by others
+                            </p>
+                        </div>
+                        {activeTab === 'stories' && (
+                            <Button
+                                size='lg'
+                                onClick={() => {
+                                    setShowCreateForm(true)
+                                    setEditingStory(null)
+                                    setFormData({ title: '', content: '', destination: '' })
+                                    setImagePreviews([])
+                                    setSelectedFiles([])
+                                    setPreviewImageIndex(0)
+                                }}
+                            >
+                                <Plus size={20} className='mr-2' />
+                                Share Your Story
+                            </Button>
+                        )}
+                    </div>
                     
                     {/* Tabs */}
                     <div className='flex gap-2 border-b'>
@@ -546,197 +577,187 @@ function CommunityPage() {
                     <LocalInsiderTips />
                 ) : (
                     <>
-                        {/* Stories Section */}
-                        <div className='flex items-center justify-between mb-6'>
-                            <Button
-                                size='lg'
-                                onClick={() => {
-                                    setShowCreateForm(!showCreateForm)
-                                    setEditingStory(null)
-                                    setFormData({ title: '', content: '', destination: '' })
-                                    setImagePreviews([])
-                                    setSelectedFiles([])
-                                    setPreviewImageIndex(0)
-                                }}
-                            >
-                                <Plus size={20} className='mr-2' />
-                                Share Your Story
-                            </Button>
+                        {/* Featured Travelers showcase */}
+                        <FeaturedTravelers />
+
+                        {/* Divider */}
+                        <div className='flex items-center gap-4 my-8'>
+                            <div className='flex-1 h-px bg-gray-200' />
+                            <span className='text-gray-500 text-sm font-medium'>Community Stories</span>
+                            <div className='flex-1 h-px bg-gray-200' />
                         </div>
 
-                {/* Create/Edit Form */}
-                {showCreateForm && (
-                    <Card className='mb-8 shadow-xl'>
-                        <CardHeader>
-                            <div className='flex items-center justify-between'>
-                                <CardTitle>
-                                    {editingStory ? 'Edit Story' : 'Create New Story'}
-                                </CardTitle>
-                                <Button
-                                    variant='ghost'
-                                    size='sm'
-                                    onClick={() => {
-                                        setShowCreateForm(false)
-                                        setEditingStory(null)
-                                        setFormData({ title: '', content: '', destination: '' })
-                                        setImagePreviews([])
-                                        setSelectedFiles([])
-                                        setPreviewImageIndex(0)
-                                    }}
-                                >
-                                    <X size={20} />
-                                </Button>
-                            </div>
-                        </CardHeader>
-                        <CardContent>
-                            <form onSubmit={handleSubmit} className='space-y-4'>
-                                <div className='space-y-2'>
-                                    <Label htmlFor='title'>Story Title *</Label>
-                                    <Input
-                                        id='title'
-                                        name='title'
-                                        placeholder='My Amazing Trip to...'
-                                        value={formData.title}
-                                        onChange={handleInputChange}
-                                        required
-                                    />
-                                </div>
 
-                                <div className='space-y-2'>
-                                    <Label htmlFor='destination'>Destination *</Label>
-                                    <Input
-                                        id='destination'
-                                        name='destination'
-                                        placeholder='Paris, France'
-                                        value={formData.destination}
-                                        onChange={handleInputChange}
-                                        required
-                                    />
-                                </div>
-
-                                <div className='space-y-2'>
-                                    <Label htmlFor='images'>Upload Images (up to 5 images, optional)</Label>
-                                    <div className='border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-primary transition-colors'>
-                                        <input
-                                            id='images'
-                                            type='file'
-                                            accept='image/*'
-                                            multiple
-                                            onChange={handleFileChange}
-                                            className='hidden'
+                        <Dialog open={showCreateForm} onOpenChange={(open) => {
+                            if (!open) {
+                                setShowCreateForm(false)
+                                setEditingStory(null)
+                                setFormData({ title: '', content: '', destination: '' })
+                                setImagePreviews([])
+                                setSelectedFiles([])
+                                setPreviewImageIndex(0)
+                            } else {
+                                setShowCreateForm(true)
+                            }
+                        }}>
+                            <DialogContent className='max-w-2xl overflow-y-auto max-h-[90vh]'>
+                                <DialogHeader>
+                                    <DialogTitle>
+                                        {editingStory ? 'Edit Story' : 'Create New Story'}
+                                    </DialogTitle>
+                                    <DialogDescription>
+                                        Share your travel story with the community.
+                                    </DialogDescription>
+                                </DialogHeader>
+                                <form onSubmit={handleSubmit} className='space-y-4'>
+                                    <div className='space-y-2'>
+                                        <Label htmlFor='title'>Story Title *</Label>
+                                        <Input
+                                            id='title'
+                                            name='title'
+                                            placeholder='My Amazing Trip to...'
+                                            value={formData.title}
+                                            onChange={handleInputChange}
+                                            required
                                         />
-                                        <label htmlFor='images' className='cursor-pointer'>
-                                            {imagePreviews.length > 0 ? (
-                                                <div className='space-y-4'>
-                                                    {/* Main Preview */}
-                                                    <div className='relative w-full h-64 mx-auto rounded-lg overflow-hidden'>
-                                                        {imagePreviews[previewImageIndex] && (
-                                                            <Image
-                                                                src={imagePreviews[previewImageIndex]}
-                                                                alt='Preview'
-                                                                fill
-                                                                className='object-cover'
-                                                            />
-                                                        )}
-                                                        <div className='absolute top-2 right-2 bg-black/50 text-white px-3 py-1 rounded-full text-sm'>
-                                                            Preview Image
+                                    </div>
+
+                                    <div className='space-y-2'>
+                                        <Label htmlFor='destination'>Destination *</Label>
+                                        <Input
+                                            id='destination'
+                                            name='destination'
+                                            placeholder='Paris, France'
+                                            value={formData.destination}
+                                            onChange={handleInputChange}
+                                            required
+                                        />
+                                    </div>
+
+                                    <div className='space-y-2'>
+                                        <Label htmlFor='images'>Upload Images (up to 5 images, optional)</Label>
+                                        <div className='border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-primary transition-colors'>
+                                            <input
+                                                id='images'
+                                                type='file'
+                                                accept='image/*'
+                                                multiple
+                                                onChange={handleFileChange}
+                                                className='hidden'
+                                            />
+                                            <label htmlFor='images' className='cursor-pointer'>
+                                                {imagePreviews.length > 0 ? (
+                                                    <div className='space-y-4'>
+                                                        {/* Main Preview */}
+                                                        <div className='relative w-full h-64 mx-auto rounded-lg overflow-hidden'>
+                                                            {imagePreviews[previewImageIndex] && (
+                                                                <Image
+                                                                    src={imagePreviews[previewImageIndex]}
+                                                                    alt='Preview'
+                                                                    fill
+                                                                    className='object-cover'
+                                                                />
+                                                            )}
+                                                            <div className='absolute top-2 right-2 bg-black/50 text-white px-3 py-1 rounded-full text-sm'>
+                                                                Preview Image
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                    
-                                                    {/* Thumbnails */}
-                                                    <div className='flex gap-2 flex-wrap justify-center'>
-                                                        {imagePreviews.map((preview, index) => (
-                                                            <div key={index} className='relative group'>
-                                                                <div
-                                                                    className={`relative w-20 h-20 rounded-lg overflow-hidden cursor-pointer border-2 ${
-                                                                        previewImageIndex === index
-                                                                            ? 'border-primary'
-                                                                            : 'border-transparent hover:border-gray-300'
-                                                                    }`}
-                                                                    onClick={(e) => {
-                                                                        e.preventDefault()
-                                                                        setPreviewImageIndex(index)
-                                                                    }}
-                                                                >
-                                                                    {preview && (
-                                                                        <Image
-                                                                            src={preview}
-                                                                            alt={`Thumbnail ${index + 1}`}
-                                                                            fill
-                                                                            className='object-cover'
-                                                                        />
+                                                        
+                                                        {/* Thumbnails */}
+                                                        <div className='flex gap-2 flex-wrap justify-center'>
+                                                            {imagePreviews.map((preview, index) => (
+                                                                <div key={index} className='relative group'>
+                                                                    <div
+                                                                        className={`relative w-20 h-20 rounded-lg overflow-hidden cursor-pointer border-2 ${
+                                                                            previewImageIndex === index
+                                                                                ? 'border-primary'
+                                                                                : 'border-transparent hover:border-gray-300'
+                                                                        }`}
+                                                                        onClick={(e) => {
+                                                                            e.preventDefault()
+                                                                            setPreviewImageIndex(index)
+                                                                        }}
+                                                                    >
+                                                                        {preview && (
+                                                                            <Image
+                                                                                src={preview}
+                                                                                alt={`Thumbnail ${index + 1}`}
+                                                                                fill
+                                                                                className='object-cover'
+                                                                            />
+                                                                        )}
+                                                                    </div>
+                                                                    <button
+                                                                        type='button'
+                                                                        onClick={(e) => {
+                                                                            e.preventDefault()
+                                                                            handleRemoveImage(index)
+                                                                        }}
+                                                                        className='absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity'
+                                                                    >
+                                                                        <X size={14} />
+                                                                    </button>
+                                                                    {previewImageIndex === index && (
+                                                                        <div className='absolute bottom-0 left-0 right-0 bg-primary text-white text-xs text-center py-0.5'>
+                                                                            Preview
+                                                                        </div>
                                                                     )}
                                                                 </div>
-                                                                <button
-                                                                    type='button'
-                                                                    onClick={(e) => {
-                                                                        e.preventDefault()
-                                                                        handleRemoveImage(index)
-                                                                    }}
-                                                                    className='absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity'
-                                                                >
-                                                                    <X size={14} />
-                                                                </button>
-                                                                {previewImageIndex === index && (
-                                                                    <div className='absolute bottom-0 left-0 right-0 bg-primary text-white text-xs text-center py-0.5'>
-                                                                        Preview
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        ))}
+                                                            ))}
+                                                        </div>
+                                                        <p className='text-sm text-gray-600'>
+                                                            Click thumbnails to set preview • Click X to remove • Click here to add more
+                                                        </p>
                                                     </div>
-                                                    <p className='text-sm text-gray-600'>
-                                                        Click thumbnails to set preview • Click X to remove • Click here to add more
-                                                    </p>
-                                                </div>
-                                            ) : (
-                                                <div className='space-y-2'>
-                                                    <div className='flex justify-center'>
-                                                        <div className='w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center'>
-                                                            <ImageIcon className='text-gray-400' size={32} />
+                                                ) : (
+                                                    <div className='space-y-2'>
+                                                        <div className='flex justify-center'>
+                                                            <div className='w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center'>
+                                                                <ImageIcon className='text-gray-400' size={32} />
+                                                            </div>
+                                                        </div>
+                                                        <div>
+                                                            <p className='text-sm font-medium text-gray-700'>
+                                                                Click to upload images
+                                                            </p>
+                                                            <p className='text-xs text-gray-500 mt-1'>
+                                                                PNG, JPG, WEBP up to 4MB each • Max 5 images
+                                                            </p>
                                                         </div>
                                                     </div>
-                                                    <div>
-                                                        <p className='text-sm font-medium text-gray-700'>
-                                                            Click to upload images
-                                                        </p>
-                                                        <p className='text-xs text-gray-500 mt-1'>
-                                                            PNG, JPG, WEBP up to 4MB each • Max 5 images
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </label>
+                                                )}
+                                            </label>
+                                        </div>
                                     </div>
-                                </div>
 
-                                <div className='space-y-2'>
-                                    <Label htmlFor='content'>Your Story *</Label>
-                                    <Textarea
-                                        id='content'
-                                        name='content'
-                                        placeholder='Share your travel experience, tips, and memories...'
-                                        value={formData.content}
-                                        onChange={handleInputChange}
-                                        required
-                                        className='min-h-[200px]'
-                                    />
-                                </div>
+                                    <div className='space-y-2'>
+                                        <Label htmlFor='content'>Your Story *</Label>
+                                        <Textarea
+                                            id='content'
+                                            name='content'
+                                            placeholder='Share your travel experience, tips, and memories...'
+                                            value={formData.content}
+                                            onChange={handleInputChange}
+                                            required
+                                            className='min-h-[200px]'
+                                        />
+                                    </div>
 
-                                <Button type='submit' className='w-full' disabled={isUploading}>
-                                    {isUploading ? (
-                                        <>
-                                            <Upload className='mr-2 animate-spin' size={18} />
-                                            Uploading...
-                                        </>
-                                    ) : (
-                                        editingStory ? 'Update Story' : 'Publish Story'
-                                    )}
-                                </Button>
-                            </form>
-                        </CardContent>
-                    </Card>
-                )}
+                                    <Button type='submit' className='w-full' disabled={isUploading || !userDetail?._id}>
+                                        {isUploading ? (
+                                            <>
+                                                <Upload className='mr-2 animate-spin' size={18} />
+                                                Uploading...
+                                            </>
+                                        ) : !userDetail?._id ? (
+                                            'Loading User Profile...'
+                                        ) : (
+                                            editingStory ? 'Update Story' : 'Publish Story'
+                                        )}
+                                    </Button>
+                                </form>
+                            </DialogContent>
+                        </Dialog>
 
                 {/* Stories Grid */}
                 <div className='grid md:grid-cols-2 gap-6'>
@@ -760,6 +781,7 @@ function CommunityPage() {
                 )}
                     </>
                 )}
+
             </div>
         </div>
     )

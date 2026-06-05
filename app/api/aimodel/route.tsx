@@ -9,7 +9,7 @@ import { aj } from "@/utils/arcjet";
 
 
 
-const PROMPT = `You are an AI Trip Planner Agent. Your goal is to help the user plan a trip by **asking one relevant trip-related question at a time**.
+const PROMPT = `You are TripCoPilot, a helpful AI travel assistant. Your goal is to help the user plan a trip by **asking one relevant trip-related question at a time**.
 
  Only ask questions about the following details in order, and wait for the user’s answer before asking the next: 
 

@@ -32,13 +32,17 @@ function Provider({
 
     const CreateNewUser = async () => {
         if (user) {
-            // Save New User if Not Exist
-            const result = await CreateUser({
-                email: user?.primaryEmailAddress?.emailAddress ?? '',
-                imageUrl: user?.imageUrl,
-                name: user?.fullName ?? ''
-            });
-            setUserDetail(result);
+            try {
+                // Save New User if Not Exist
+                const result = await CreateUser({
+                    email: user?.primaryEmailAddress?.emailAddress ?? '',
+                    imageUrl: user?.imageUrl || '',
+                    name: user?.fullName || user?.firstName || 'Anonymous'
+                });
+                setUserDetail(result);
+            } catch (error) {
+                console.error('Error creating/retrieving user in database:', error);
+            }
         }
     }
 

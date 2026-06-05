@@ -17,6 +17,13 @@ import Image from 'next/image'
 import { useUserDetail } from '@/app/provider'
 import { Id } from '@/convex/_generated/dataModel'
 import { useUploadThing } from '@/utils/uploadthing'
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog'
 
 const CATEGORIES = [
     { value: 'food', label: '🍽️ Food & Dining', icon: '🍽️' },
@@ -123,7 +130,10 @@ function LocalInsiderTips() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-        if (!userDetail?._id) return
+        if (!userDetail?._id) {
+            alert('Your user details are still loading from the database. Please wait a moment and try again.')
+            return
+        }
 
         setIsUploading(true)
         let imageUrls: string[] = []
@@ -428,48 +438,41 @@ function LocalInsiderTips() {
             </div>
 
             {/* Local Claim Dialog */}
-            {showLocalClaim && (
-                <Card className='border-green-200 bg-green-50'>
-                    <CardHeader>
-                        <div className='flex items-center justify-between'>
-                            <CardTitle className='flex items-center gap-2'>
-                                <BadgeCheck className='text-green-600' />
-                                Claim Verified Local Status
-                            </CardTitle>
-                            <Button variant='ghost' size='sm' onClick={() => setShowLocalClaim(false)}>
-                                <X size={20} />
-                            </Button>
-                        </div>
-                        <CardDescription>
+            <Dialog open={showLocalClaim} onOpenChange={setShowLocalClaim}>
+                <DialogContent className='sm:max-w-md'>
+                    <DialogHeader>
+                        <DialogTitle className='flex items-center gap-2'>
+                            <BadgeCheck className='text-green-600' />
+                            Claim Verified Local Status
+                        </DialogTitle>
+                        <DialogDescription>
                             Are you a local? Get a verified badge and help travelers with authentic insights!
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <div className='flex gap-2'>
-                            <Input
-                                placeholder='Enter city/country (e.g., Paris, France)'
-                                value={claimDestination}
-                                onChange={(e) => setClaimDestination(e.target.value)}
-                            />
-                            <Button onClick={handleClaimLocal}>Claim</Button>
-                        </div>
-                        {userLocalDestinations && userLocalDestinations.length > 0 && (
-                            <div className='mt-3'>
-                                <p className='text-sm font-semibold mb-2'>Your Local Destinations:</p>
-                                <div className='flex flex-wrap gap-2'>
-                                    {userLocalDestinations.map((local) => (
-                                        <span key={local._id} className='px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm flex items-center gap-1'>
-                                            <BadgeCheck size={14} />
-                                            {local.destination}
-                                            <span className='text-xs'>({local.tipCount} tips)</span>
-                                        </span>
-                                    ))}
-                                </div>
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className='flex gap-2 py-4'>
+                        <Input
+                            placeholder='Enter city/country (e.g., Paris, France)'
+                            value={claimDestination}
+                            onChange={(e) => setClaimDestination(e.target.value)}
+                        />
+                        <Button onClick={handleClaimLocal}>Claim</Button>
+                    </div>
+                    {userLocalDestinations && userLocalDestinations.length > 0 && (
+                        <div className='mt-3'>
+                            <p className='text-sm font-semibold mb-2'>Your Local Destinations:</p>
+                            <div className='flex flex-wrap gap-2'>
+                                {userLocalDestinations.map((local) => (
+                                    <span key={local._id} className='px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm flex items-center gap-1'>
+                                        <BadgeCheck size={14} />
+                                        {local.destination}
+                                        <span className='text-xs'>({local.tipCount} tips)</span>
+                                    </span>
+                                ))}
                             </div>
-                        )}
-                    </CardContent>
-                </Card>
-            )}
+                        </div>
+                    )}
+                </DialogContent>
+            </Dialog>
 
             {/* Trending Tips */}
             {trendingTips && trendingTips.length > 0 && (
@@ -572,173 +575,175 @@ function LocalInsiderTips() {
             </Card>
 
             {/* Create/Edit Form */}
-            {showCreateForm && (
-                <Card className='shadow-xl'>
-                    <CardHeader>
-                        <div className='flex items-center justify-between'>
-                            <CardTitle>{editingTip ? 'Edit Tip' : 'Share a Local Tip'}</CardTitle>
-                            <Button variant='ghost' size='sm' onClick={resetForm}>
-                                <X size={20} />
-                            </Button>
+            <Dialog open={showCreateForm} onOpenChange={(open) => {
+                if (!open) {
+                    resetForm()
+                } else {
+                    setShowCreateForm(true)
+                }
+            }}>
+                <DialogContent className='max-w-2xl overflow-y-auto max-h-[90vh]'>
+                    <DialogHeader>
+                        <DialogTitle>{editingTip ? 'Edit Tip' : 'Share a Local Tip'}</DialogTitle>
+                        <DialogDescription>
+                            Share local secrets and insider knowledge with fellow travelers.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <form onSubmit={handleSubmit} className='space-y-4'>
+                        <div className='grid md:grid-cols-2 gap-4'>
+                            <div>
+                                <Label htmlFor='destination'>Destination *</Label>
+                                <Input
+                                    id='destination'
+                                    name='destination'
+                                    placeholder='Paris, France'
+                                    value={formData.destination}
+                                    onChange={handleInputChange}
+                                    required
+                                    disabled={!!editingTip}
+                                />
+                            </div>
+                            <div>
+                                <Label htmlFor='category'>Category *</Label>
+                                <select
+                                    id='category'
+                                    name='category'
+                                    value={formData.category}
+                                    onChange={handleInputChange}
+                                    required
+                                    disabled={!!editingTip}
+                                    className='w-full px-3 py-2 border rounded-md'
+                                >
+                                    {CATEGORIES.map((cat) => (
+                                        <option key={cat.value} value={cat.value}>
+                                            {cat.label}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
                         </div>
-                    </CardHeader>
-                    <CardContent>
-                        <form onSubmit={handleSubmit} className='space-y-4'>
-                            <div className='grid md:grid-cols-2 gap-4'>
-                                <div>
-                                    <Label htmlFor='destination'>Destination *</Label>
-                                    <Input
-                                        id='destination'
-                                        name='destination'
-                                        placeholder='Paris, France'
-                                        value={formData.destination}
-                                        onChange={handleInputChange}
-                                        required
-                                        disabled={!!editingTip}
-                                    />
-                                </div>
-                                <div>
-                                    <Label htmlFor='category'>Category *</Label>
-                                    <select
-                                        id='category'
-                                        name='category'
-                                        value={formData.category}
-                                        onChange={handleInputChange}
-                                        required
-                                        disabled={!!editingTip}
-                                        className='w-full px-3 py-2 border rounded-md'
-                                    >
-                                        {CATEGORIES.map((cat) => (
-                                            <option key={cat.value} value={cat.value}>
-                                                {cat.label}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                            </div>
 
+                        <div>
+                            <Label htmlFor='title'>Tip Title *</Label>
+                            <Input
+                                id='title'
+                                name='title'
+                                placeholder='Best croissant in Le Marais'
+                                value={formData.title}
+                                onChange={handleInputChange}
+                                required
+                            />
+                        </div>
+
+                        <div>
+                            <Label htmlFor='content'>Detailed Tip *</Label>
+                            <Textarea
+                                id='content'
+                                name='content'
+                                placeholder='Share your insider knowledge...'
+                                value={formData.content}
+                                onChange={handleInputChange}
+                                required
+                                className='min-h-[150px]'
+                            />
+                        </div>
+
+                        <div className='grid md:grid-cols-3 gap-4'>
                             <div>
-                                <Label htmlFor='title'>Tip Title *</Label>
+                                <Label htmlFor='specificLocation'>Exact Location</Label>
                                 <Input
-                                    id='title'
-                                    name='title'
-                                    placeholder='Best croissant in Le Marais'
-                                    value={formData.title}
+                                    id='specificLocation'
+                                    name='specificLocation'
+                                    placeholder='23 Rue des Rosiers'
+                                    value={formData.specificLocation}
                                     onChange={handleInputChange}
-                                    required
                                 />
                             </div>
-
                             <div>
-                                <Label htmlFor='content'>Detailed Tip *</Label>
-                                <Textarea
-                                    id='content'
-                                    name='content'
-                                    placeholder='Share your insider knowledge...'
-                                    value={formData.content}
+                                <Label htmlFor='priceRange'>Price Range</Label>
+                                <select
+                                    id='priceRange'
+                                    name='priceRange'
+                                    value={formData.priceRange || ''}
                                     onChange={handleInputChange}
-                                    required
-                                    className='min-h-[150px]'
-                                />
+                                    className='w-full px-3 py-2 border rounded-md'
+                                >
+                                    <option value=''>Select...</option>
+                                    {PRICE_RANGES.map((price) => (
+                                        <option key={price.value} value={price.value}>
+                                            {price.label}
+                                        </option>
+                                    ))}
+                                </select>
                             </div>
-
-                            <div className='grid md:grid-cols-3 gap-4'>
-                                <div>
-                                    <Label htmlFor='specificLocation'>Exact Location</Label>
-                                    <Input
-                                        id='specificLocation'
-                                        name='specificLocation'
-                                        placeholder='23 Rue des Rosiers'
-                                        value={formData.specificLocation}
-                                        onChange={handleInputChange}
-                                    />
-                                </div>
-                                <div>
-                                    <Label htmlFor='priceRange'>Price Range</Label>
-                                    <select
-                                        id='priceRange'
-                                        name='priceRange'
-                                        value={formData.priceRange || ''}
-                                        onChange={handleInputChange}
-                                        className='w-full px-3 py-2 border rounded-md'
-                                    >
-                                        <option value=''>Select...</option>
-                                        {PRICE_RANGES.map((price) => (
-                                            <option key={price.value} value={price.value}>
-                                                {price.label}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div>
-                                    <Label htmlFor='bestTime'>Best Time</Label>
-                                    <Input
-                                        id='bestTime'
-                                        name='bestTime'
-                                        placeholder='Morning 7-9 AM'
-                                        value={formData.bestTime}
-                                        onChange={handleInputChange}
-                                    />
-                                </div>
-                            </div>
-
                             <div>
-                                <Label htmlFor='tags'>Tags (comma-separated)</Label>
+                                <Label htmlFor='bestTime'>Best Time</Label>
                                 <Input
-                                    id='tags'
-                                    name='tags'
-                                    placeholder='bakery, breakfast, authentic'
-                                    value={formData.tags}
+                                    id='bestTime'
+                                    name='bestTime'
+                                    placeholder='Morning 7-9 AM'
+                                    value={formData.bestTime}
                                     onChange={handleInputChange}
                                 />
                             </div>
+                        </div>
 
-                            <div>
-                                <Label htmlFor='images'>Images (up to 3)</Label>
-                                <div className='border-2 border-dashed border-gray-300 rounded-lg p-4'>
-                                    <input
-                                        id='images'
-                                        type='file'
-                                        accept='image/*'
-                                        multiple
-                                        onChange={handleFileChange}
-                                        className='hidden'
-                                    />
-                                    <label htmlFor='images' className='cursor-pointer block text-center'>
-                                        {imagePreviews.length > 0 ? (
-                                            <div className='flex gap-2 flex-wrap justify-center'>
-                                                {imagePreviews.map((preview, index) => (
-                                                    <div key={index} className='relative group'>
-                                                        <div className='relative w-24 h-24 rounded-lg overflow-hidden'>
-                                                            <Image src={preview} alt={`Preview ${index + 1}`} fill className='object-cover' />
-                                                        </div>
-                                                        <button
-                                                            type='button'
-                                                            onClick={(e) => { e.preventDefault(); handleRemoveImage(index) }}
-                                                            className='absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center'
-                                                        >
-                                                            <X size={14} />
-                                                        </button>
+                        <div>
+                            <Label htmlFor='tags'>Tags (comma-separated)</Label>
+                            <Input
+                                id='tags'
+                                name='tags'
+                                placeholder='bakery, breakfast, authentic'
+                                value={formData.tags}
+                                onChange={handleInputChange}
+                            />
+                        </div>
+
+                        <div>
+                            <Label htmlFor='images'>Images (up to 3)</Label>
+                            <div className='border-2 border-dashed border-gray-300 rounded-lg p-4'>
+                                <input
+                                    id='images'
+                                    type='file'
+                                    accept='image/*'
+                                    multiple
+                                    onChange={handleFileChange}
+                                    className='hidden'
+                                />
+                                <label htmlFor='images' className='cursor-pointer block text-center'>
+                                    {imagePreviews.length > 0 ? (
+                                        <div className='flex gap-2 flex-wrap justify-center'>
+                                            {imagePreviews.map((preview, index) => (
+                                                <div key={index} className='relative group'>
+                                                    <div className='relative w-24 h-24 rounded-lg overflow-hidden'>
+                                                        <Image src={preview} alt={`Preview ${index + 1}`} fill className='object-cover' />
                                                     </div>
-                                                ))}
-                                            </div>
-                                        ) : (
-                                            <div className='text-gray-500'>
-                                                <Upload className='mx-auto mb-2' size={32} />
-                                                <p>Click to upload images</p>
-                                            </div>
-                                        )}
-                                    </label>
-                                </div>
+                                                    <button
+                                                        type='button'
+                                                        onClick={(e) => { e.preventDefault(); handleRemoveImage(index) }}
+                                                        className='absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center'
+                                                    >
+                                                        <X size={14} />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className='text-gray-500'>
+                                            <Upload className='mx-auto mb-2' size={32} />
+                                            <p>Click to upload images</p>
+                                        </div>
+                                    )}
+                                </label>
                             </div>
+                        </div>
 
-                            <Button type='submit' className='w-full' disabled={isUploading}>
-                                {isUploading ? 'Uploading...' : editingTip ? 'Update Tip' : 'Share Tip'}
-                            </Button>
-                        </form>
-                    </CardContent>
-                </Card>
-            )}
+                        <Button type='submit' className='w-full' disabled={isUploading || !userDetail?._id}>
+                            {isUploading ? 'Uploading...' : !userDetail?._id ? 'Loading User Profile...' : editingTip ? 'Update Tip' : 'Share Tip'}
+                        </Button>
+                    </form>
+                </DialogContent>
+            </Dialog>
 
             {/* Tips Grid */}
             <div className='grid md:grid-cols-2 gap-6'>

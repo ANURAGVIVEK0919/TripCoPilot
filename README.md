@@ -1,4 +1,4 @@
-# ✈️ AI Trip Planner — Smart Travel Buddy
+# ✈️ TripCoPilot — Smart Travel Buddy
 
 [![Next.js 16](https://img.shields.io/badge/Next.js-16.x-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
 [![React 19](https://img.shields.io/badge/React-19.x-blue?style=for-the-badge&logo=react)](https://react.dev/)
@@ -7,7 +7,7 @@
 [![Arcjet Security](https://img.shields.io/badge/Arcjet-Security-00D2FF?style=for-the-badge&logo=shield)](https://arcjet.com/)
 [![Llama 3.3](https://img.shields.io/badge/Groq%20AI-Llama%203.3-red?style=for-the-badge&logo=meta)](https://groq.com/)
 
-**AI Trip Planner (Smart Travel Buddy)** is a next-generation, collaborative travel planning application designed to revolutionize how travelers plan, coordinate, budget, and experience their journeys. 
+**TripCoPilot (Smart Travel Buddy)** is a next-generation, collaborative travel planning application designed to revolutionize how travelers plan, coordinate, budget, and experience their journeys. 
 
 By combining an **AI-powered Generative UI Chat** with a **real-time reactive backend**, advanced conflict-aware scheduling, and smart group utility modules, the app turns chaotic trip planning into a seamless, fun, and interactive experience.
 
@@ -90,8 +90,8 @@ Get the reactive stack up and running in a few simple steps:
 
 ### 1. Clone Repository & Install Packages
 ```bash
-git clone https://github.com/ANURAGVIVEK0919/ai-trip-buddy.git
-cd ai-trip-buddy
+git clone https://github.com/ANURAGVIVEK0919/TripCoPilot.git
+cd TripCoPilot
 npm install
 ```
 

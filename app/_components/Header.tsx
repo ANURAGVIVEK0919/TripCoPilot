@@ -67,12 +67,12 @@ function Header() {
 
 
     return (
-        <div className='flex justify-between items-center p-4 shadow'>
+        <div className='flex justify-between items-center p-4 border-b border-border/40 bg-white/75 backdrop-blur-md sticky top-0 z-50 shadow-sm'>
             
             {/* Logo and Brand Name */}
             <div className='flex gap-2 items-center'>
                 <Image src={'/logo.svg'} alt='logo' width={30} height={30} />
-                <h2 className='font-bold text-2xl'>AI Trip Planner</h2>
+                <h2 className='font-bold text-2xl'>TripCoPilot</h2>
             </div>
             
             {/* Navigation Menu - filters out auth-required items when not logged in */}

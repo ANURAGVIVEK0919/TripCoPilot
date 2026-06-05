@@ -76,16 +76,16 @@ function Hero() {
         <section className='page-container pt-20 md:pt-28'>
             <div className='max-w-4xl mx-auto text-center'>
                 
-                {/* Main Heading with gradient effect on "Trip Planner" */}
+                {/* Main Heading with gradient effect on "TripCoPilot" */}
                 <h1 className='mb-4'>Hey, I'm your personal{" "}
                     <span className='bg-gradient-to-r from-primary via-primary to-blue-600 bg-clip-text text-transparent'>
-                        Trip Planner
+                        TripCoPilot
                     </span>
                 </h1>
                 
                 {/* Subtitle explaining the AI capabilities */}
                 <p className='text-muted-foreground mb-8 max-w-2xl mx-auto'>
-                    Tell me what you want, and I'll handle the rest: Flights, Hotels, trip Planner - all in seconds
+                    Tell me what you want, and I'll handle the rest: Flights, Hotels, TripCoPilot - all in seconds
                 </p>
 
                 {/* Trip Input Card with textarea and send button */}

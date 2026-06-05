@@ -99,7 +99,7 @@ function ViewTrip() {
     };
 
     return (
-        <div className='flex flex-col h-screen bg-gray-50'>
+        <div className='flex flex-col h-screen bg-transparent'>
             {/* Top Bar with Trip Info and Actions */}
             <div className='border-b bg-white p-4 shadow-sm z-10'>
                 <div className='max-w-7xl mx-auto flex items-center justify-between'>
