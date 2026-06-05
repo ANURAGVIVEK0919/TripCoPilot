@@ -102,7 +102,13 @@ npx convex dev
 ```
 *This command prompts you to log into Convex, creates your cloud database instance, and automatically populates your `.env.local` file with the Convex deployment variables.*
 
-### 3. Add Key API Environment Variables
+### 3. Seed Demo Content (Optional)
+To populate your development database with default featured travelers, community stories, and local expert tips, run the seeding script:
+```bash
+npx convex run seedFeaturedTravelers:seedAll
+```
+
+### 4. Add Key API Environment Variables
 Create or open your `.env.local` file and append the following credentials:
 ```env
 # Clerk Auth Credentials (dashboard.clerk.com)
@@ -125,7 +131,7 @@ CURRENCY_API_KEY=your_currency_key
 ARCJET_KEY=ajkey_...
 ```
 
-### 4. Fire Up Development Server
+### 5. Fire Up Development Server
 ```bash
 npm run dev
 ```
