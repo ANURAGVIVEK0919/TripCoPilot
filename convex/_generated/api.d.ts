@@ -23,6 +23,7 @@ import type * as expenses from "../expenses.js";
 import type * as insiderTips from "../insiderTips.js";
 import type * as notifications from "../notifications.js";
 import type * as packingList from "../packingList.js";
+import type * as seedFeaturedTravelers from "../seedFeaturedTravelers.js";
 import type * as socialMedia from "../socialMedia.js";
 import type * as tripDetail from "../tripDetail.js";
 import type * as tripSharing from "../tripSharing.js";
@@ -48,6 +49,7 @@ declare const fullApi: ApiFromModules<{
   insiderTips: typeof insiderTips;
   notifications: typeof notifications;
   packingList: typeof packingList;
+  seedFeaturedTravelers: typeof seedFeaturedTravelers;
   socialMedia: typeof socialMedia;
   tripDetail: typeof tripDetail;
   tripSharing: typeof tripSharing;
