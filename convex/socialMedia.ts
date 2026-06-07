@@ -614,10 +614,14 @@ Write in first person, be authentic and engaging.`;
         });
 
         if (!response.ok) {
-            throw new Error(`Groq API error: ${response.statusText}`);
+            const errorText = await response.text();
+            throw new Error(`Groq API error (${response.status}): ${errorText || response.statusText}`);
         }
 
         const result = await response.json();
+        if (!result.choices || result.choices.length === 0 || !result.choices[0]?.message?.content) {
+            throw new Error(`Invalid or empty response from Groq API: ${JSON.stringify(result)}`);
+        }
         return result.choices[0].message.content.trim();
     } catch (error) {
         console.error('Caption generation error:', error);
@@ -760,15 +764,19 @@ Select exactly ${limit} photo(s).`;
 
         if (response.ok) {
             const result = await response.json();
-            const indices = result.choices[0].message.content
-                .trim()
-                .split(',')
-                .map((idx: string) => parseInt(idx.trim()))
-                .filter((idx: number) => !isNaN(idx) && idx >= 0 && idx < photoUrls.length)
-                .slice(0, limit);
+            if (result.choices && result.choices.length > 0 && result.choices[0]?.message?.content) {
+                const indices = result.choices[0].message.content
+                    .trim()
+                    .split(',')
+                    .map((idx: string) => parseInt(idx.trim()))
+                    .filter((idx: number) => !isNaN(idx) && idx >= 0 && idx < photoUrls.length)
+                    .slice(0, limit);
 
-            if (indices.length > 0) {
-                return indices.map((idx: number) => photoUrls[idx]);
+                if (indices.length > 0) {
+                    return indices.map((idx: number) => photoUrls[idx]);
+                }
+            } else {
+                console.warn('Unexpected response structure in photo analysis:', result);
             }
         }
     } catch (error) {

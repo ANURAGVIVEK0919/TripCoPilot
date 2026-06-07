@@ -235,10 +235,14 @@ export const sendChatMessage = action({
             });
 
             if (!response.ok) {
-                throw new Error(`Groq API error: ${response.statusText}`);
+                const errorText = await response.text();
+                throw new Error(`Groq API error (${response.status}): ${errorText || response.statusText}`);
             }
 
             const data = await response.json();
+            if (!data.choices || data.choices.length === 0 || !data.choices[0]?.message?.content) {
+                throw new Error(`Invalid or empty response from Groq API: ${JSON.stringify(data)}`);
+            }
             const aiResponse = data.choices[0].message.content;
 
             // Check if AI suggests an action

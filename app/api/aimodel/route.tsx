@@ -247,6 +247,9 @@ export async function POST(req: NextRequest) {
         ...cleanedMessages
       ],
     });
+    if (!completion.choices || completion.choices.length === 0 || !completion.choices[0]?.message) {
+      throw new Error("Invalid or empty response from OpenAI/Groq API");
+    }
     console.log("✅ AI Response:", completion.choices[0].message);
     const message = completion.choices[0].message;
     return NextResponse.json(JSON.parse(message.content ?? ''));

@@ -508,13 +508,19 @@ Make sure to include:
 
 Return ONLY valid JSON, no additional text.`;
 
+        const groqApiKey = process.env.GROQ_API_KEY;
+        if (!groqApiKey) {
+            console.error('GROQ_API_KEY is not configured in Convex environment variables.');
+            throw new Error('GROQ_API_KEY is not configured. Please add it to your Convex environment variables.');
+        }
+
         try {
             // Call AI API (using your existing OpenAI/Groq setup)
             const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
+                    'Authorization': `Bearer ${groqApiKey}`,
                 },
                 body: JSON.stringify({
                     model: 'llama-3.3-70b-versatile',
@@ -527,14 +533,25 @@ Return ONLY valid JSON, no additional text.`;
                 }),
             });
 
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Groq API error (${response.status}): ${errorText || response.statusText}`);
+            }
+
             const data = await response.json();
+            if (!data.choices || data.choices.length === 0 || !data.choices[0]?.message?.content) {
+                throw new Error(`Invalid or empty response from Groq API: ${JSON.stringify(data)}`);
+            }
             const content = data.choices[0].message.content;
 
             // Parse JSON response
             const jsonMatch = content.match(/\{[\s\S]*\}/);
-            if (!jsonMatch) throw new Error('Invalid AI response format');
+            if (!jsonMatch) throw new Error('Invalid AI response format: JSON not found in content');
 
             const parsed = JSON.parse(jsonMatch[0]);
+            if (!parsed.items || !Array.isArray(parsed.items)) {
+                throw new Error('Invalid AI response structure: parsed items is not an array');
+            }
             
             // Create packing list
             const listId: Id<"PackingLists"> = await ctx.runMutation(internal.packingList.createPackingListInternal, {
@@ -556,7 +573,7 @@ Return ONLY valid JSON, no additional text.`;
             return { listId, itemCount: parsed.items.length };
         } catch (error) {
             console.error('AI generation error:', error);
-            throw new Error('Failed to generate packing list. Please try again.');
+            throw new Error(error instanceof Error ? error.message : 'Failed to generate packing list. Please try again.');
         }
     },
 });
