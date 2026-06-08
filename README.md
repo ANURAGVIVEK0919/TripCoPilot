@@ -11,6 +11,7 @@ Traditional trip planning is fragmented and chaotic:
 - **Collaboration Conflicts**: Getting multiple people to agree on destinations, schedules, and hotels causes confusion, and changes made by one person are not instantly visible to others.
 - **Budgeting & Expense Tracking**: Logging expenses, splitting costs, and settling debts within a group is tedious and error-prone.
 - **Packing & Preparedness**: Forgetting essential items due to lack of a structured packing list, or not knowing local weather conditions.
+- **Fragmented Travel Knowledge**: Travelers rely on fragmented, generic blogs for local recommendations, finding it hard to get trusted advice. TripCoPilot hosts a centralized community knowledge base of authentic experiences and local insider tips.
 
 **TripCoPilot** solves these issues by centralizing all travel planning utilities into a single, real-time reactive workspace with a conversational AI interface.
 
@@ -40,6 +41,8 @@ Here are the core technologies used in TripCoPilot and why they were chosen:
 - **Real-Time Group Collaboration**: Invite group members as Owners, Editors, or Viewers. Every edit is synced in real-time.
 - **Smart Expense Splitter & Budget Manager**: Log expenses in any currency and let the app's settlement engine calculate optimal repayments.
 - **Weather & AI Packing Lists**: Tailored checklists based on destination climate, trip category, and duration, alongside current weather alerts.
+- **Traveler Community Spotlight**: Share your travel stories with multiple high-quality photos, like, comment, and engage with other travelers' experiences.
+- **Local Insider Tips**: Share and discover verified local tips, food recommendations, and budget hacks filtered by category and destination.
 
 ---
 
@@ -64,3 +67,11 @@ Easily log transactions, attach receipts, manage your budget, and track splits a
 ### 5. AI-Powered Packing Checklist
 Get categorized smart packing suggestions tailored to your trip destination and duration.
 ![Packing List](./public/screenshots/packing-list.png)
+
+### 6. Community - Featured Travelers
+Spotlight and connect with active community members, showing their travel milestones, stats, and shared experiences.
+![Featured Travelers](./public/screenshots/community-travelers.png)
+
+### 7. Community - Local Insider Tips
+Browse and share authentic local recommendations, hidden gems, and travel hacks from experienced locals.
+![Local Insider Tips](./public/screenshots/community-tips.png)
