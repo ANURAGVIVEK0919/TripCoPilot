@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     siteName: "TripCoPilot",
     images: [
       {
-        url: "/logo.png",
+        url: "/logo.svg",
         width: 1200,
         height: 630,
         alt: "TripCoPilot Logo",
@@ -44,12 +44,12 @@ export const metadata: Metadata = {
     title: "TripCoPilot | Smart Travel Itinerary Generator",
     description:
       "Your personal AI travel assistant – plan trips, book hotels, and explore destinations in seconds with TripCoPilot.",
-    images: ["/logo.png"],
+    images: ["/logo.svg"],
   },
   icons: {
-    icon: "/logo.png",
-    shortcut: "/logo.png",
-    apple: "/logo.png",
+    icon: "/logo.svg",
+    shortcut: "/logo.svg",
+    apple: "/logo.svg",
   },
 };
 
