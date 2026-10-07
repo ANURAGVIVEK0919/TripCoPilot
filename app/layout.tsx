@@ -51,7 +51,6 @@ export const metadata: Metadata = {
     shortcut: "/logo.png",
     apple: "/logo.png",
   },
-  manifest: "/manifest.json",
 };
 
 
@@ -65,6 +64,9 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html lang="en">
+        <head>
+          <link rel="manifest" href="/manifest.json" crossOrigin="use-credentials" />
+        </head>
         <body
           className={outfit.className}
         >
