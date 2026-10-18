@@ -11,7 +11,7 @@ import { aj } from "@/utils/arcjet";
 
 const PROMPT = `You are TripCoPilot, a helpful AI travel assistant. Your goal is to help the user plan a trip by **asking one relevant trip-related question at a time**.
 
- Only ask questions about the following details in order, and wait for the user’s answer before asking the next: 
+Only ask questions about the following details in order, and wait for the user's answer before asking the next:
 
 1. Starting location (source) 
 2. Destination city or country 
@@ -22,14 +22,21 @@ const PROMPT = `You are TripCoPilot, a helpful AI travel assistant. Your goal is
 Do not ask multiple questions at once, and never ask irrelevant questions.
 If any answer is missing or unclear, politely ask the user to clarify before proceeding.
 Always maintain a conversational, interactive style while asking questions.
-Along wth response also send which ui component to display for generative UI for example 'budget/groupSize/tripDuration/final,null) ,
- where ui:final means AI is not asking any more question and informing user that now trip is generating, Please wait.
-Once all required information is collected, generate and return a **strict JSON response only** (no explanations or extra text) with following JSON schema:
+
+CRITICAL INSTRUCTION FOR EVERY RESPONSE:
+You MUST ALWAYS return a strict JSON response on EVERY turn (no markdown outside JSON, no introductory commentary).
+The JSON response must strictly follow this JSON schema format:
 {
-resp:'Text Resp',
-ui:'budget/groupSize/tripDuration/final)'
+  "resp": "Conversational question or response to the user",
+  "ui": null
 }
 
+The "ui" field must be either null or one of the following exact string values:
+- "groupSize": when asking the user for their group size (Solo, Couple, Family, Friends)
+- "budget": when asking the user for their budget (Low, Medium, High)
+- "tripDuration": when asking the user for trip duration / number of days
+- "final": when all required information has been collected, informing the user that trip generation will begin
+- null: when asking open-ended questions like source, destination, special preferences, or clarifying answers
 `
 
 const FINAL_PROMPT = `Generate Travel Plan with given details. You will receive:
@@ -166,22 +173,28 @@ export async function POST(req: NextRequest) {
   const { messages, isFinal, tripId } = await req.json();
   const user = await currentUser();
   
-  console.log("=== AI MODEL API CALLED ===");
-  console.log("Messages received:", messages);
-  console.log("Is Final:", isFinal);
-  console.log("Trip ID:", tripId);
-  console.log("User:", user?.primaryEmailAddress?.emailAddress);
-  
   // Check premium status from user's email or custom metadata
-  // Note: For production, store subscription in Convex UserTable and query it
-  // or use Clerk's publicMetadata: user?.publicMetadata?.subscription === 'premium'
-  const hasPremiumAccess = user?.publicMetadata?.subscription === 'premium' || 
-                          user?.publicMetadata?.subscription === 'monthly';
-  
-  console.log("hasPremiumAccess", hasPremiumAccess)
-  const decision = await aj.protect(req, { userId: user?.primaryEmailAddress?.emailAddress ?? '', requested: isFinal ? 1 : 0 }); // Deduct 1 token from the bucket
+  const hasPremiumAccess = Boolean(
+    user?.publicMetadata?.subscription === 'premium' ||
+    user?.publicMetadata?.subscription === 'monthly'
+  );
 
-  console.log("Arcjet decision:", decision);
+  console.log("=== AI MODEL API CALLED ===");
+  console.log("Messages count:", Array.isArray(messages) ? messages.length : 0);
+  console.log("Is Final:", Boolean(isFinal));
+  console.log("Trip ID present:", Boolean(tripId));
+  console.log("User authenticated:", Boolean(user?.id));
+  console.log("hasPremiumAccess:", hasPremiumAccess);
+  // Arcjet tokenBucket accounting:
+  // Both intermediate turns and final generation deduct 1 token from the bucket.
+  // The daily capacity is 30 tokens, supporting ~5 full trips per day (approx 6 requests per trip).
+  const requestedTokens = 1;
+  const decision = await aj.protect(req, {
+    userId: user?.primaryEmailAddress?.emailAddress ?? 'anonymous',
+    requested: requestedTokens,
+  });
+
+  console.log("Arcjet decision conclusion:", decision.conclusion);
 
   //@ts-ignore
   if (decision.isDenied() && !hasPremiumAccess) {
@@ -190,6 +203,16 @@ export async function POST(req: NextRequest) {
       resp: 'No Free Credit Remaining',
       ui: 'limit'
     })
+  }
+
+  //@ts-ignore
+  if (decision.isErrored() && !hasPremiumAccess) {
+    console.error("❌ Arcjet protection error:", decision.reason);
+    // Explicit security check: if Arcjet encounters an internal/config error, do not fail silently
+    return NextResponse.json(
+      { error: "Security check failed. Please try again later." },
+      { status: 429 }
+    );
   }
 
   try {
@@ -248,14 +271,20 @@ export async function POST(req: NextRequest) {
     if (!completion.choices || completion.choices.length === 0 || !completion.choices[0]?.message) {
       throw new Error("Invalid or empty response from OpenAI/Groq API");
     }
-    console.log("✅ AI Response:", completion.choices[0].message);
+    console.log("✅ AI Response received successfully (choices count:", completion.choices.length, ")");
     const message = completion.choices[0].message;
     const rawContent = message.content?.trim() ?? '{}';
     const cleanedContent = rawContent.replace(/^```json\s*/i, '').replace(/^```\s*/, '').replace(/\s*```$/, '');
     return NextResponse.json(JSON.parse(cleanedContent));
   }
   catch (e: any) {
-    console.error("❌ AI API Error:", e);
+    console.error("❌ AI API Error status:", e?.status, "code:", e?.error?.code ?? e?.code);
+    if (e?.error?.failed_generation) {
+      const snippet = typeof e.error.failed_generation === 'string'
+        ? e.error.failed_generation.slice(0, 150)
+        : JSON.stringify(e.error.failed_generation).slice(0, 150);
+      console.error("❌ Groq failed_generation diagnostic:", snippet);
+    }
     const status = typeof e?.status === 'number' && e.status >= 400 && e.status < 600 ? e.status : 500;
     return NextResponse.json(
       { error: "Failed to generate AI response. Please try again." },
