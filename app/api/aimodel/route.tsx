@@ -235,9 +235,7 @@ export async function POST(req: NextRequest) {
     }
 
     const completion = await openai.chat.completions.create({
-      // Using Groq's Llama 3.3 70B - Much better quality, still free!
-      // Other free options: 'llama-3.1-8b-instant', 'mixtral-8x7b-32768', 'gemma2-9b-it'
-      model: 'llama-3.3-70b-versatile',
+      model: 'openai/gpt-oss-120b',
       response_format: { type: 'json_object' },
       messages: [
         {
@@ -252,10 +250,16 @@ export async function POST(req: NextRequest) {
     }
     console.log("✅ AI Response:", completion.choices[0].message);
     const message = completion.choices[0].message;
-    return NextResponse.json(JSON.parse(message.content ?? ''));
+    const rawContent = message.content?.trim() ?? '{}';
+    const cleanedContent = rawContent.replace(/^```json\s*/i, '').replace(/^```\s*/, '').replace(/\s*```$/, '');
+    return NextResponse.json(JSON.parse(cleanedContent));
   }
-  catch (e) {
+  catch (e: any) {
     console.error("❌ AI API Error:", e);
-    return NextResponse.json(e);
+    const status = typeof e?.status === 'number' && e.status >= 400 && e.status < 600 ? e.status : 500;
+    return NextResponse.json(
+      { error: "Failed to generate AI response. Please try again." },
+      { status }
+    );
   }
 }
