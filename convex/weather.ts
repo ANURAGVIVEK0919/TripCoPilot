@@ -5,12 +5,33 @@ import { internal, api } from "./_generated/api";
 // ============ WEATHER API INTEGRATION ============
 
 /**
+ * Safely extracts error details from an HTTP response without exposing credentials.
+ * Reads response body only once and handles both JSON and plain text.
+ */
+async function extractErrorDetail(res: Response): Promise<string> {
+    try {
+        const text = await res.text();
+        if (!text) {
+            return res.statusText || 'Unknown error';
+        }
+        try {
+            const json = JSON.parse(text);
+            return json.message || json.error || text;
+        } catch {
+            return text;
+        }
+    } catch {
+        return res.statusText || 'Failed to read response body';
+    }
+}
+
+/**
  * Fetch weather forecast from OpenWeatherMap API and cache it
  * Free tier: 1,000 calls/day, updates every 10 minutes
  */
 export const fetchWeatherForecast = action({
     args: {
-        location: v.string(), // City name or "lat,lon"
+        location: v.string(), // City name (e.g. "Paris", "Paris, France") or coordinates "lat,lon"
         country: v.optional(v.string()), // Country code (optional)
     },
     handler: async (ctx, args) => {
@@ -19,34 +40,47 @@ export const fetchWeatherForecast = action({
             throw new Error('OpenWeatherMap API key not configured. Add OPENWEATHER_API_KEY to environment variables.');
         }
 
+        const trimmedLocation = args.location?.trim();
+        if (!trimmedLocation) {
+            throw new Error('Location is required and cannot be empty.');
+        }
+
         try {
-            // First, get coordinates from location name (Geocoding API)
-            let lat: number, lon: number;
-            
-            if (args.location.includes(',')) {
-                // Already in "lat,lon" format
-                const [latStr, lonStr] = args.location.split(',');
-                lat = parseFloat(latStr);
-                lon = parseFloat(lonStr);
+            // First, determine coordinates:
+            let lat: number;
+            let lon: number;
+
+            // Check if input is strictly numeric "lat,lon" coordinates (e.g. "48.8588897,2.320041")
+            const coordMatch = trimmedLocation.match(/^(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)$/);
+            if (coordMatch) {
+                lat = parseFloat(coordMatch[1]);
+                lon = parseFloat(coordMatch[2]);
+
+                if (isNaN(lat) || isNaN(lon) || lat < -90 || lat > 90 || lon < -180 || lon > 180) {
+                    throw new Error(`Invalid geographic coordinates: "${trimmedLocation}". Latitude must be between -90 and 90, longitude between -180 and 180.`);
+                }
             } else {
-                // Geocode city name to coordinates
-                const geocodeQuery = args.country 
-                    ? `${args.location},${args.country}` 
-                    : args.location;
-                
+                // Geocode city name (e.g. "Paris", "Paris, France") to coordinates
+                // Avoid redundant country concatenation if already formatted as "City, Country"
+                const geocodeQuery = args.country && !trimmedLocation.includes(',')
+                    ? `${trimmedLocation},${args.country.trim()}`
+                    : trimmedLocation;
+
                 const geocodeUrl = `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(geocodeQuery)}&limit=1&appid=${apiKey}`;
                 const geocodeResponse = await fetch(geocodeUrl);
-                
+
                 if (!geocodeResponse.ok) {
-                    throw new Error(`Geocoding failed: ${geocodeResponse.statusText}`);
+                    const geocodeError = await extractErrorDetail(geocodeResponse);
+                    console.error(`Geocoding failed (${geocodeResponse.status} ${geocodeResponse.statusText}):`, geocodeError);
+                    throw new Error(`Geocoding failed (${geocodeResponse.status}): ${geocodeError}`);
                 }
-                
+
                 const geocodeData = await geocodeResponse.json();
-                
+
                 if (!geocodeData || geocodeData.length === 0) {
-                    throw new Error(`Location not found: ${args.location}`);
+                    throw new Error(`Location not found: "${trimmedLocation}". Please check the spelling or provide a valid city.`);
                 }
-                
+
                 lat = geocodeData[0].lat;
                 lon = geocodeData[0].lon;
             }
@@ -56,29 +90,34 @@ export const fetchWeatherForecast = action({
             const weatherResponse = await fetch(weatherUrl);
 
             if (!weatherResponse.ok) {
-                // Fallback to free 2.5 API if 3.0 fails
+                const oneCallError = await extractErrorDetail(weatherResponse);
+                // One Call 3.0 requires paid subscription; standard free keys return 401. Fall back to free 2.5 API.
+                console.warn(`OneCall 3.0 unavailable (${weatherResponse.status} ${weatherResponse.statusText}): ${oneCallError}. Falling back to 2.5 forecast API.`);
+
                 const fallbackUrl = `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&units=metric&appid=${apiKey}`;
                 const fallbackResponse = await fetch(fallbackUrl);
-                
+
                 if (!fallbackResponse.ok) {
-                    throw new Error(`Weather API failed: ${fallbackResponse.statusText}`);
+                    const fallbackError = await extractErrorDetail(fallbackResponse);
+                    console.error(`Weather API failed (${fallbackResponse.status} ${fallbackResponse.statusText}):`, fallbackError);
+                    throw new Error(`Weather API failed (${fallbackResponse.status}): ${fallbackError}`);
                 }
-                
+
                 const fallbackData = await fallbackResponse.json();
-                return await processFallbackWeatherData(ctx, args.location, fallbackData);
+                return await processFallbackWeatherData(ctx, trimmedLocation, fallbackData, args.country);
             }
 
             const weatherData = await weatherResponse.json();
 
             // Save to database
             const weatherForecast = {
-                location: args.location,
+                location: trimmedLocation,
                 country: args.country,
                 current: {
                     temp: Math.round(weatherData.current.temp),
                     feelsLike: Math.round(weatherData.current.feels_like),
-                    description: weatherData.current.weather[0].description,
-                    icon: weatherData.current.weather[0].icon,
+                    description: weatherData.current.weather?.[0]?.description ?? 'Clear',
+                    icon: weatherData.current.weather?.[0]?.icon ?? '01d',
                     humidity: weatherData.current.humidity,
                     windSpeed: weatherData.current.wind_speed,
                     sunrise: weatherData.current.sunrise,
@@ -88,8 +127,8 @@ export const fetchWeatherForecast = action({
                     date: day.dt,
                     tempMin: Math.round(day.temp.min),
                     tempMax: Math.round(day.temp.max),
-                    description: day.weather[0].description,
-                    icon: day.weather[0].icon,
+                    description: day.weather?.[0]?.description ?? 'Clear',
+                    icon: day.weather?.[0]?.icon ?? '01d',
                     pop: day.pop, // Probability of precipitation
                     humidity: day.humidity,
                     windSpeed: day.wind_speed,
@@ -108,7 +147,7 @@ export const fetchWeatherForecast = action({
 
             return weatherForecast;
         } catch (error: any) {
-            console.error('Weather fetch error:', error);
+            console.error('Weather fetch error:', error?.message || error);
             throw new Error(`Failed to fetch weather: ${error.message}`);
         }
     },
@@ -117,58 +156,63 @@ export const fetchWeatherForecast = action({
 /**
  * Process fallback weather data from free 2.5 API
  */
-async function processFallbackWeatherData(ctx: any, location: string, data: any) {
-    const now = Date.now() / 1000;
+async function processFallbackWeatherData(ctx: any, location: string, data: any, country?: string) {
+    if (!data?.list || data.list.length === 0) {
+        throw new Error('Weather API returned empty forecast list');
+    }
+
     const dailyForecasts: any[] = [];
-    
+
     // Group forecasts by day (data comes in 3-hour intervals)
     const dayGroups: { [key: string]: any[] } = {};
-    
+
     data.list.forEach((forecast: any) => {
         const date = new Date(forecast.dt * 1000);
         const dayKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
-        
+
         if (!dayGroups[dayKey]) {
             dayGroups[dayKey] = [];
         }
         dayGroups[dayKey].push(forecast);
     });
-    
+
     // Get first 7 days
     Object.keys(dayGroups).slice(0, 7).forEach(dayKey => {
         const forecasts = dayGroups[dayKey];
         const temps = forecasts.map((f: any) => f.main.temp);
         const pops = forecasts.map((f: any) => f.pop || 0);
-        
+        const midForecast = forecasts[Math.floor(forecasts.length / 2)];
+
         dailyForecasts.push({
             date: forecasts[0].dt,
             tempMin: Math.round(Math.min(...temps)),
             tempMax: Math.round(Math.max(...temps)),
-            description: forecasts[Math.floor(forecasts.length / 2)].weather[0].description,
-            icon: forecasts[Math.floor(forecasts.length / 2)].weather[0].icon,
+            description: midForecast?.weather?.[0]?.description ?? 'Clear',
+            icon: midForecast?.weather?.[0]?.icon ?? '01d',
             pop: Math.max(...pops),
-            humidity: forecasts[0].main.humidity,
-            windSpeed: forecasts[0].wind.speed,
+            humidity: forecasts[0]?.main?.humidity ?? 0,
+            windSpeed: forecasts[0]?.wind?.speed ?? 0,
         });
     });
-    
+
     const weatherForecast = {
         location,
+        country,
         current: {
-            temp: Math.round(data.list[0].main.temp),
-            feelsLike: Math.round(data.list[0].main.feels_like),
-            description: data.list[0].weather[0].description,
-            icon: data.list[0].weather[0].icon,
-            humidity: data.list[0].main.humidity,
-            windSpeed: data.list[0].wind.speed,
-            sunrise: data.city.sunrise,
-            sunset: data.city.sunset,
+            temp: Math.round(data.list[0]?.main?.temp ?? 0),
+            feelsLike: Math.round(data.list[0]?.main?.feels_like ?? 0),
+            description: data.list[0]?.weather?.[0]?.description ?? 'Clear',
+            icon: data.list[0]?.weather?.[0]?.icon ?? '01d',
+            humidity: data.list[0]?.main?.humidity ?? 0,
+            windSpeed: data.list[0]?.wind?.speed ?? 0,
+            sunrise: data.city?.sunrise ?? Math.floor(Date.now() / 1000),
+            sunset: data.city?.sunset ?? Math.floor(Date.now() / 1000) + 43200,
         },
         daily: dailyForecasts,
         alerts: [],
         lastUpdated: Date.now(),
     };
-    
+
     await ctx.runMutation(internal.weather.saveWeatherForecast, weatherForecast);
     return weatherForecast;
 }
@@ -235,9 +279,12 @@ export const getWeatherForecast = query({
         location: v.string(),
     },
     handler: async (ctx, args) => {
+        const trimmed = args.location?.trim();
+        if (!trimmed) return null;
+
         const forecast = await ctx.db
             .query('WeatherForecasts')
-            .withIndex('by_location', (q) => q.eq('location', args.location))
+            .withIndex('by_location', (q) => q.eq('location', trimmed))
             .first();
 
         if (!forecast) return null;
@@ -264,9 +311,14 @@ export const getOrFetchWeather = action({
         country: v.optional(v.string()),
     },
     handler: async (ctx, args): Promise<any> => {
+        const trimmed = args.location?.trim();
+        if (!trimmed) {
+            throw new Error('Location is required and cannot be empty.');
+        }
+
         // Check cache first using query
         const forecast = await ctx.runQuery(api.weather.getWeatherForecast, {
-            location: args.location,
+            location: trimmed,
         });
 
         if (forecast) {
@@ -276,7 +328,7 @@ export const getOrFetchWeather = action({
 
         // Cache miss or expired, fetch new data
         const newForecast = await ctx.runAction(api.weather.fetchWeatherForecast, {
-            location: args.location,
+            location: trimmed,
             country: args.country,
         });
 
@@ -292,9 +344,17 @@ export const getPackingSuggestions = query({
         location: v.string(),
     },
     handler: async (ctx, args) => {
+        const trimmed = args.location?.trim();
+        if (!trimmed) {
+            return {
+                suggestions: ['Check weather forecast closer to your trip date'],
+                needsUpdate: true,
+            };
+        }
+
         const forecast = await ctx.db
             .query('WeatherForecasts')
-            .withIndex('by_location', (q) => q.eq('location', args.location))
+            .withIndex('by_location', (q) => q.eq('location', trimmed))
             .first();
 
         if (!forecast) {
